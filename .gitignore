@@ -1,0 +1,6 @@
+.venv/
+.deps/
+docs/_build/
+docs/robdef/
+__pycache__/
+*.egg-info/

@@ -1,0 +1,133 @@
+## Example service exercising the robdef docstring convention.
+##
+## Members of :robdef:object:`LinearAxis` command a single prismatic axis.
+## Units are SI (meters, seconds) unless stated otherwise.
+service com.robotraconteur.testing.docstringexample
+
+stdver 0.10
+
+import com.robotraconteur.geometry
+import com.robotraconteur.device
+
+using com.robotraconteur.geometry.Pose
+using com.robotraconteur.geometry.Vector3 as Vec3
+using com.robotraconteur.device.Device
+using com.robotraconteur.device.DeviceInfo
+
+## Maximum axis speed in meters per second.
+constant double max_speed 0.5
+
+## Axis motion state.
+enum AxisState
+    ## Axis is powered off.
+    disabled = 0,
+    ## Axis is powered and holding position.
+    enabled,
+    ## Axis is moving.
+    moving,
+    ## Axis has faulted. Call :robdef:function:`LinearAxis.reset` to recover.
+    fault = 0x10
+end
+
+## Raised when a commanded position is outside :robdef:field:`AxisInfo.limits`.
+exception AxisLimitException
+
+## Static description of an axis.
+struct AxisInfo
+    ## Axis name.
+    field string name
+    ## Lower and upper position limits in meters, in that order.
+    field double[2] limits
+    ## Mounting pose of the axis frame relative to the robot base frame.
+    field Pose mount
+end
+
+## Axis state sample.
+##
+## Published at the controller rate on :robdef:wire:`LinearAxis.state_sample`.
+pod AxisSample
+    ## Position in meters.
+    field double position
+    ## Velocity in meters per second.
+    field double velocity
+end
+
+## Cartesian offset in meters, ordered x, y, z.
+namedarray Offset
+    ## Offset vector in the axis frame.
+    field double[3] xyz
+end
+
+## A single prismatic axis.
+##
+## All motion commands move hardware. Motion commands are rejected unless
+## :robdef:property:`state` is :robdef:enumvalue:`AxisState.enabled`.
+object LinearAxis
+    implements Device
+
+    ## Number of encoder counts per meter.
+    constant int32 counts_per_meter 100000
+
+    ## Device information, required by :robdef:object:`com.robotraconteur.device.Device`.
+    property DeviceInfo device_info [readonly,nolock]
+
+    ## Static axis information.
+    property AxisInfo info [readonly]
+
+    ## Current axis state.
+    property AxisState state [readonly]
+
+    ## Move to an absolute position.
+    ##
+    ## Blocks until the move completes or faults. Moves hardware.
+    ##
+    ## :param position: Target position in meters, within ``info.limits``.
+    ## :param speed: Speed in meters per second, ``0 < speed <= max_speed``.
+    ## :return: Final measured position in meters.
+    ## :raises AxisLimitException: ``position`` is outside the axis limits.
+    ## :raises OperationAbortedException: The move was aborted by :robdef:function:`halt`.
+    function double move_absolute(double position, double speed)
+
+    ## Move through a sequence of offsets.
+    ##
+    ## Moves hardware. Each element of ``offsets`` is applied relative to the
+    ## previous target, in list order.
+    ##
+    ## :param offsets: Offsets in meters, in the axis frame.
+    ## :param tool_pose: Tool pose in the axis frame.
+    ## :return: Generator yielding the commanded sample after each offset.
+    ## :raises com.robotraconteur.testing.docstringexample.AxisLimitException: An offset leaves the axis limits.
+    function AxisSample{generator} move_offsets(Offset{list} offsets, Pose tool_pose)
+
+    ## Stop motion immediately. Does not block. Moves hardware (decelerates to rest).
+    function void halt() [urgent]
+
+    ## Clear a fault and return to :robdef:enumvalue:`AxisState.enabled`.
+    ##
+    ## :raises InvalidOperationException: The fault condition is still present.
+    function void reset()
+
+    ## Fired when the axis enters :robdef:enumvalue:`AxisState.fault`.
+    ##
+    ## :param code: Vendor fault code.
+    ## :param message: Human readable fault description.
+    event fault_occurred(int32 code, string message)
+
+    ## Streaming position command in meters. Moves hardware.
+    pipe double position_command [writeonly]
+
+    ## Latest state sample, updated at the controller rate.
+    wire AxisSample state_sample [readonly]
+
+    ## Ask the client to confirm a move.
+    ##
+    ## :param target: Proposed target offset.
+    ## :return: ``true`` to allow the move.
+    callback bool confirm_move(Vec3 target)
+
+    ## Recorded samples, oldest first.
+    memory AxisSample[] history [readonly]
+
+    ## Axis attached to the end of this axis, if any.
+    objref LinearAxis{int32} child
+end

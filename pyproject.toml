@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robotraconteur-sphinx"
+version = "0.1.0"
+description = "Sphinx domain and RST generator for Robot Raconteur service definition (robdef) files"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+dependencies = ["sphinx>=7.1"]
+classifiers = [
+    "Framework :: Sphinx :: Extension",
+    "Topic :: Documentation :: Sphinx",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "robotraconteur"]
+
+[project.scripts]
+robdef-sphinx = "robotraconteur_sphinx.generator:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]

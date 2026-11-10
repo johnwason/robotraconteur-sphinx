@@ -1,7 +1,9 @@
 """Sphinx support for Robot Raconteur service definitions (``.robdef``).
 
 Add ``"robotraconteur_sphinx"`` to ``extensions`` in ``conf.py`` to register
-the ``robdef`` domain. To generate pages at build time, also set::
+the ``robdef`` domain and the ``robdef`` Pygments lexer (for
+``.. code-block:: robdef`` and ``literalinclude`` with ``:language: robdef``).
+To generate pages at build time, also set::
 
     robdef_files = ["path/to/robdefs/", "other.robdef"]  # relative to conf.py; globs allowed
     robdef_output_dir = "robdef"           # relative to the source dir
@@ -52,8 +54,10 @@ def _generate(app) -> None:
 
 def setup(app) -> dict[str, Any]:
     from .domain import RobdefDomain, missing_reference
+    from .lexer import RobdefLexer
 
     app.add_domain(RobdefDomain)
+    app.add_lexer("robdef", RobdefLexer)
     app.add_config_value("robdef_files", [], "env", types=frozenset({list, tuple}))
     app.add_config_value("robdef_output_dir", "robdef", "env", types=frozenset({str}))
     app.add_config_value("robdef_index", "index", "env", types=frozenset({str, type(None)}))

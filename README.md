@@ -121,6 +121,26 @@ without a link target, even in nitpicky mode.
 Every object gets a general index entry. A service index is available at
 `` :ref:`robdef-serviceindex` ``.
 
+## Syntax highlighting
+
+The extension registers a `robdef` Pygments lexer, so robdef source can be highlighted:
+
+```rst
+.. code-block:: robdef
+
+   object LinearAxis
+       property double position [readonly]
+   end
+
+.. literalinclude:: ../robdef/experimental.linear_axis.robdef
+   :language: robdef
+```
+
+`##` documentation comments are highlighted differently from `#` comments. The
+lexer is also registered as a Pygments plugin (alias `robdef`, files
+`*.robdef`), so `pygmentize` and other Pygments-based tools pick it up once the
+package is installed.
+
 ## Development
 
 ```

@@ -9,7 +9,7 @@ description = "Sphinx domain and RST generator for Robot Raconteur service defin
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
-dependencies = ["sphinx>=7.1"]
+dependencies = ["sphinx>=7.1", "pygments>=2.12"]
 classifiers = [
     "Framework :: Sphinx :: Extension",
     "Topic :: Documentation :: Sphinx",
@@ -20,6 +20,9 @@ test = ["pytest", "robotraconteur"]
 
 [project.scripts]
 robdef-sphinx = "robotraconteur_sphinx.generator:main"
+
+[project.entry-points."pygments.lexers"]
+robdef = "robotraconteur_sphinx.lexer:RobdefLexer"
 
 [tool.setuptools.packages.find]
 where = ["src"]
